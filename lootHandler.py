@@ -1,6 +1,7 @@
 # RNG based weapon generator by Jack Gibson
 
 import random
+import math
 from PIL import Image, ImageDraw, ImageFont
 
 bases = ["Wand", "Sword", "Bow"]
@@ -9,6 +10,26 @@ prefixes = [("Screaming",20), ("Weeping",15),("Burning",10),("Almighty",5),("Dyi
 strength_suffixes = [("Strength",15),("Might",15),("Crushing",10),("Hulking",3)]
 intelligence_suffixes = [("Focus",15),("Meditation",5),("Research",10),("Insight",15)]
 dexterity_suffixes = [("Dodging", 15),("Swiftness",10),("Silence",10),("Cunning",15)]
+
+def get_bgcolour_by_rarity(rarity_type):
+    return {
+        'Common': (255,255,255),
+        'Uncommon': (5,255,63),
+        'Magic': (15,143,255),
+        'Rare': (255,255,15),
+        'Legendary': (255,113,5),
+        'Unique': (144,0,255)
+    }[rarity_type]
+    
+def get_txtcolour_by_rarity(rarity_type):
+    return {
+        'Common': (0,0,0),
+        'Uncommon': (0,0,0),
+        'Magic': (255,255,255),
+        'Rare': (0,0,0),
+        'Legendary': (0,0,0),
+        'Unique': (255,255,255)
+    }[rarity_type]
 
 def roll(list):
     # Pick from weighted list of prefixes
@@ -82,7 +103,7 @@ class Weapon:
     prefix = roll(prefixes)
     suffix = roll_suffix(base, strength_suffixes, intelligence_suffixes, dexterity_suffixes)
     base_damage = roll_base_damage(base, rarity_multiplier)
-    enhanced_damage = roll_enhanced_damage(base_damage, prefix, suffix, rarity_multiplier)
+    enhanced_damage = math.trunc(roll_enhanced_damage(base_damage, prefix, suffix, rarity_multiplier))
 
 print(Weapon.prefix + " " + Weapon.base + " of " + Weapon.suffix)
 print(Weapon.rarity)
@@ -90,34 +111,18 @@ print("Damage:",Weapon.enhanced_damage)
 
 weapon_constructed_name = Weapon.prefix + " " + Weapon.base + " of " + Weapon.suffix
 
-def get_bgcolour_by_rarity(rarity_type):
-    return {
-        'Common': (255,255,255),
-        'Uncommon': (5,255,63),
-        'Magic': (15,143,255),
-        'Rare': (255,255,15),
-        'Legendary': (255,113,5),
-        'Unique': (144,0,255)
-    }[rarity_type]
-    
-def get_txtcolour_by_rarity(rarity_type):
-    return {
-        'Common': (0,0,0),
-        'Uncommon': (0,0,0),
-        'Magic': (255,255,255),
-        'Rare': (0,0,0),
-        'Legendary': (0,0,0),
-        'Unique': (255,255,255)
-    }[rarity_type]
 
 # Generate weapon card image
+
 img = Image.new('RGB', (400, 700), color=get_bgcolour_by_rarity(Weapon.rarity))
  
-name_font = ImageFont.truetype('/Library/Fonts/Inter-UI-BlackItalic.ttf', 20)
+name_font = ImageFont.truetype('/Library/Fonts/Inter-UI-BlackItalic.ttf', 22)
+damage_font = ImageFont.truetype('/Library/Fonts/Inter-UI-BlackItalic.ttf', 20)
 rarity_font = ImageFont.truetype('/Library/Fonts/Inter-LightItalic-BETA.ttf', 15)
 
 d = ImageDraw.Draw(img)
 d.text((10,10), weapon_constructed_name, font=name_font, fill=get_txtcolour_by_rarity(Weapon.rarity))
 d.text((10,35), Weapon.rarity, font=rarity_font, fill=get_txtcolour_by_rarity(Weapon.rarity))
+d.text((10,55), str(Weapon.enhanced_damage) + " Damage", font=damage_font, fill=get_txtcolour_by_rarity(Weapon.rarity))
  
-img.save('pil_text_font.png')
+img.save('generated-item.png')
